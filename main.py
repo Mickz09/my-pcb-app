@@ -2,20 +2,17 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import uvicorn
-import io
-import random
 from PIL import Image
+import io
 
-# Import your vision model framework here
-# from ultralytics import YOLO, RTDETR
+# Import RTDETR instead of YOLO
+from ultralytics import RTDETR 
 
 app = FastAPI(title="PCB Solder Defect API")
-
-# Mount the static directory so the frontend can be served
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Initialize your computer vision model
-# model = RTDETR('best.pt') 
+# Load your newly trained RT-DETR model
+model = RTDETR("best.pt") 
 
 @app.get("/")
 async def serve_index():
@@ -23,35 +20,41 @@ async def serve_index():
 
 @app.post("/api/analyze")
 async def analyze_image(file: UploadFile = File(...)):
-    # 1. Read the uploaded image
+    # Read the uploaded image
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes))
 
-    # 2. Run inference
-    # results = model(image)
+    # Run the AI inference (The rest of this function stays exactly the same!)
+    results = model(image)
     
-    # 3. Process your model's bounding boxes and classes into this dictionary format
-    # Below is a mock response matching your React state requirements
-    mock_responses = [
-        {
-            "prediction": "Defective",
-            "defect": "Solder Bridge",
-            "confidence": 92,
-            "recommendation": "Remove excess solder and reinspect nearby pins.",
-            "defects": [
-                {"id": 1, "type": "Solder Bridge", "x": 48, "y": 42, "size": 96}
-            ]
-        },
-        {
-            "prediction": "Good",
-            "defect": "No Defect",
-            "confidence": 96,
-            "recommendation": "The solder joint passed visual classification.",
-            "defects": []
-        }
-    ]
+    defects_list = []
+    
+    for i, box in enumerate(results[0].boxes):
+        x, y, w, h = box.xywhn[0].tolist()
+        conf = float(box.conf[0]) * 100
+        class_id = int(box.cls[0])
+        class_name = model.names[class_id]
+        
+        defects_list.append({
+            "id": i + 1,
+            "type": class_name,
+            "x": x * 100,
+            "y": y * 100,
+            "width": w * 100,
+            "height": h * 100
+        })
+        
+    avg_conf = sum(d["confidence"] for d in defects_list) / len(defects_list) if defects_list else 100
+    
+    final_response = {
+        "prediction": "Defective" if len(defects_list) > 0 else "Good",
+        "defect": f"Found {len(defects_list)} defect(s)" if defects_list else "No defects detected",
+        "confidence": round(avg_conf, 1),
+        "recommendation": "Inspect highlighted areas." if defects_list else "Pass to next station.",
+        "defects": defects_list
+    }
 
-    return random.choice(mock_responses)
+    return final_response
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
