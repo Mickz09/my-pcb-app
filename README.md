@@ -1,4 +1,4 @@
-# PCB Solder Defect Classifier 🔬
+# PCB Solder Defect Classifier 
 
 A machine learning-based inspection system designed to automatically classify and locate defects in printed circuit board (PCB) solder joints. Developed as a BSIT capstone project at Colegio De San Gabriel Archangel, this application provides a full-stack solution from image upload to real-time AI inference and bounding-box rendering.
 
