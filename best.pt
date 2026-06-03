@@ -1,0 +1,10 @@
+from ultralytics import YOLO 
+# ... other imports ...
+
+app = FastAPI(title="PCB Solder Defect API")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 1. Load your brand new trained model here!
+model = YOLO("best.pt") 
+
+# ... the rest of your analyze_image logic ...
