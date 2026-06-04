@@ -5,13 +5,13 @@ import uvicorn
 from PIL import Image
 import io
 
-# Import RTDETR instead of YOLO
+# Import RTDETR 
 from ultralytics import RTDETR 
 
 app = FastAPI(title="PCB Solder Defect API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Load your newly trained RT-DETR model
+# Load newly trained RT-DETR model
 model = RTDETR("best.pt") 
 
 @app.get("/")
