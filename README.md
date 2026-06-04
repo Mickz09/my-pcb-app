@@ -20,7 +20,7 @@ A machine learning-based inspection system designed to automatically classify an
 my-pcb-app/
 ├── main.py                          # FastAPI backend server
 ├── requirements.txt                 # Python dependencies
-├── best.pt                          # Trained YOLOv8 model weights
+├── best.pt                          # Trained RT-DETR model weights
 └── static/
     ├── index.html                   # Main HTML entry point
     ├── PCBSolderDefectClassifier.jsx # React frontend source code
